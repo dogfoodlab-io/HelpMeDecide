@@ -7,6 +7,58 @@ export interface LaunchTemplate {
   promptSeed: string;
 }
 
+export interface ComposerTemplateChip {
+  id: string;
+  label: string;
+  decisionType: DecisionType;
+  promptSeed: string;
+}
+
+export const composerTemplateChips: ComposerTemplateChip[] = [
+  {
+    id: "choose-as-group",
+    label: "Choose as a group",
+    decisionType: "social",
+    promptSeed: "Help my group choose between options and capture everyone's preferences.",
+  },
+  {
+    id: "compare-options",
+    label: "Compare options",
+    decisionType: "personal",
+    promptSeed: "Help me compare options using criteria, tradeoffs, and confidence.",
+  },
+  {
+    id: "research-decision",
+    label: "Research a decision",
+    decisionType: "professional",
+    promptSeed: "Help me research a decision with evidence, citations, and uncertainty.",
+  },
+  {
+    id: "name-creative-direction",
+    label: "Pick a name or creative direction",
+    decisionType: "creative",
+    promptSeed: "Help me choose between names, concepts, or creative directions.",
+  },
+  {
+    id: "trip-event",
+    label: "Plan a trip or event",
+    decisionType: "travel",
+    promptSeed: "Help my group choose a trip, event plan, destination, or itinerary.",
+  },
+  {
+    id: "personal-decision",
+    label: "Make a personal decision",
+    decisionType: "personal",
+    promptSeed: "Help me make a personal decision with clear tradeoffs and next steps.",
+  },
+  {
+    id: "team-decision",
+    label: "Make a team decision",
+    decisionType: "team",
+    promptSeed: "Help my team make a decision with stakeholder input and a clear rationale.",
+  },
+];
+
 export const launchTemplates: LaunchTemplate[] = [
   {
     id: "creative-direction",
