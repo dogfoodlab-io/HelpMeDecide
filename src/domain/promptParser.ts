@@ -20,7 +20,7 @@ function decisionId(prompt: string, now: string): string {
 }
 
 function isTeamWorkspace(prompt: string): boolean {
-  return /\b(team|company|work|coworkers|colleagues|agency|vendor|rebrand)\b/i.test(prompt);
+  return /\b(team|company|work|coworkers|colleagues)\b/i.test(prompt);
 }
 
 function inferDecisionType(prompt: string): DecisionType {

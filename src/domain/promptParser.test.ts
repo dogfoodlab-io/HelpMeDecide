@@ -83,9 +83,15 @@ describe("createDecisionFromPrompt", () => {
       ownerId: "owner-1",
       now: "2026-07-03T12:00:00.000Z",
     });
+    const soloProfessionalDecision = createDecisionFromPrompt({
+      prompt: "Help me choose between two agencies for a rebrand.",
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
 
     expect(teamDecision.visibility).toBe("team");
     expect(friendDecision.visibility).toBe("share-link");
     expect(friendGroupDecision.visibility).toBe("share-link");
+    expect(soloProfessionalDecision.visibility).toBe("private");
   });
 });
