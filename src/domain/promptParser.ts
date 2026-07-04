@@ -64,13 +64,19 @@ function extractCriteria(prompt: string, decisionType: DecisionType): Criterion[
       .split(/,| and /)
       .map((item) => item.trim())
       .filter(Boolean)
-      .map((label) => ({ id: `criterion-${slug(label)}`, label, weight: 1 }));
+      .map((label) => ({
+        id: `criterion-${slug(label)}`,
+        label,
+        weight: 1,
+        source: "explicit" as const,
+      }));
   }
   if (decisionType === "professional") {
     return ["quality", "cost", "timeline"].map((label) => ({
       id: `criterion-${label}`,
       label,
       weight: 1,
+      source: "inferred" as const,
     }));
   }
   if (/\bcheaper|cost\b/.test(text) && /\bcloser|distance\b/.test(text)) {
@@ -78,12 +84,14 @@ function extractCriteria(prompt: string, decisionType: DecisionType): Criterion[
       id: `criterion-${label}`,
       label,
       weight: 1,
+      source: "explicit" as const,
     }));
   }
   return ["fit", "cost", "confidence"].map((label) => ({
     id: `criterion-${label}`,
     label,
     weight: 1,
+    source: "inferred" as const,
   }));
 }
 

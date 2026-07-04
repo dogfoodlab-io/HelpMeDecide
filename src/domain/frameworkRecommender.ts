@@ -1,14 +1,11 @@
 import type { Decision, FrameworkRecommendation } from "./types";
 
-const DEFAULT_CRITERIA = new Set(["fit", "cost", "confidence"]);
-
 function hasGroupInput(decision: Decision): boolean {
   return decision.visibility === "share-link" || decision.visibility === "team";
 }
 
 function hasExplicitDecisionTradeoffs(decision: Decision): boolean {
-  const criteriaLabels = decision.map.criteria.map((criterion) => criterion.label);
-  return criteriaLabels.some((label) => !DEFAULT_CRITERIA.has(label));
+  return decision.map.criteria.some((criterion) => criterion.source === "explicit");
 }
 
 function isProfessionalOwnerDecision(decision: Decision): boolean {

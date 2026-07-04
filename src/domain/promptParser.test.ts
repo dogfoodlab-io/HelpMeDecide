@@ -115,5 +115,8 @@ describe("createDecisionFromPrompt", () => {
       "distance",
       "quality",
     ]);
+    expect(decision.map.criteria.every((criterion) => criterion.source === "explicit")).toBe(
+      true,
+    );
   });
 });

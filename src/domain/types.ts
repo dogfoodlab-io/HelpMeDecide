@@ -31,6 +31,7 @@ export interface Criterion {
   id: string;
   label: string;
   weight: number;
+  source?: "explicit" | "inferred";
 }
 
 export interface Stakeholder {

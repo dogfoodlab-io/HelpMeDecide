@@ -65,6 +65,16 @@ describe("recommendFramework", () => {
     expect(result.reason).toContain("takes precedence over group preference aggregation");
   });
 
+  it("uses explicit criterion source rather than labels to detect tradeoffs", () => {
+    const result = recommendFramework(
+      decision(
+        "My friends and I need to pick a restaurant. We care about fit, cost, and confidence.",
+      ),
+    );
+
+    expect(result.type).toBe("weighted-scoring");
+  });
+
   it("falls back to pairwise comparison for small subjective solo decisions", () => {
     const result = recommendFramework(
       decision("Help me choose between Sketch A and Sketch B."),
