@@ -48,4 +48,38 @@ describe("createDecisionFromPrompt", () => {
     ]);
     expect(decision.map.openQuestions).toContain("What budget, timeline, and selection criteria should constrain the choice?");
   });
+
+  it("uses the timestamp to avoid id collisions for repeated prompts", () => {
+    const prompt = "Help me compare two personal options.";
+
+    const first = createDecisionFromPrompt({
+      prompt,
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
+    const second = createDecisionFromPrompt({
+      prompt,
+      ownerId: "owner-1",
+      now: "2026-07-03T12:01:00.000Z",
+    });
+
+    expect(first.id).not.toBe(second.id);
+    expect(first.id).toContain("decision-help-me-compare-two-personal-options-2026-07-03t12-00-00");
+  });
+
+  it("distinguishes team workspaces from ad hoc share-link groups", () => {
+    const teamDecision = createDecisionFromPrompt({
+      prompt: "Help our team choose between two offsite activities.",
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
+    const friendDecision = createDecisionFromPrompt({
+      prompt: "My friends and I need to pick a restaurant tonight.",
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
+
+    expect(teamDecision.visibility).toBe("team");
+    expect(friendDecision.visibility).toBe("share-link");
+  });
 });

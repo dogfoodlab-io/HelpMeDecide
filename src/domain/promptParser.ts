@@ -13,6 +13,12 @@ function slug(input: string): string {
     .replace(/(^-|-$)/g, "");
 }
 
+function decisionId(prompt: string, now: string): string {
+  const promptSlug = slug(prompt).slice(0, 36) || "draft";
+  const timeSlug = slug(now).slice(0, 20) || "now";
+  return `decision-${promptSlug}-${timeSlug}`;
+}
+
 function inferDecisionType(prompt: string): DecisionType {
   const text = prompt.toLowerCase();
   if (text.includes("trip") || text.includes("destination") || text.includes("flight"))
@@ -116,15 +122,16 @@ function buildMap(prompt: string, decisionType: DecisionType): DecisionMap {
 export function createDecisionFromPrompt(input: CreateDecisionInput): Decision {
   const decisionType = inferDecisionType(input.prompt);
   const isGroup = /\b(friends|team|our|group|we)\b/i.test(input.prompt);
+  const isTeam = /\b(team|our)\b/i.test(input.prompt);
 
   return {
-    id: `decision-${slug(input.prompt).slice(0, 36) || "draft"}`,
+    id: decisionId(input.prompt, input.now),
     prompt: input.prompt.trim(),
     ownerId: input.ownerId,
     status: "draft",
     decisionType,
     stakes: decisionType === "social" ? "low" : "medium",
-    visibility: isGroup ? "share-link" : "private",
+    visibility: isTeam ? "team" : isGroup ? "share-link" : "private",
     map: buildMap(input.prompt, decisionType),
     createdAt: input.now,
     updatedAt: input.now,
