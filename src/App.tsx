@@ -1,12 +1,29 @@
+import { CollaboratorView } from "./app/CollaboratorView";
+import { Composer } from "./app/Composer";
+import { PaywallModel } from "./app/PaywallModel";
+import { Workspace } from "./app/Workspace";
+import { useDecisionWorkspace } from "./state/useDecisionWorkspace";
+
 export default function App() {
+  const workspace = useDecisionWorkspace();
+
   return (
     <main className="app-shell">
-      <section className="composer">
-        <p className="eyebrow">HelpMeDecide.ai</p>
-        <h1>What are you deciding?</h1>
-        <textarea aria-label="Decision prompt" placeholder="Describe the decision, options, constraints, and people involved." />
-        <button type="button">Create decision workspace</button>
-      </section>
+      {!workspace.decision ? (
+        <Composer onCreate={workspace.createFromPrompt} />
+      ) : (
+        <>
+          <Workspace
+            decision={workspace.decision}
+            frameworkRun={workspace.frameworkRun}
+            dossier={workspace.dossier}
+          />
+          <div className="supporting-grid">
+            <CollaboratorView />
+            <PaywallModel />
+          </div>
+        </>
+      )}
     </main>
   );
 }
