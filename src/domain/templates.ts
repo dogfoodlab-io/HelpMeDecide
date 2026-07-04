@@ -14,7 +14,7 @@ export interface ComposerTemplateChip {
   promptSeed: string;
 }
 
-export const composerTemplateChips: ComposerTemplateChip[] = [
+export const composerTemplateChips: readonly ComposerTemplateChip[] = [
   {
     id: "choose-as-group",
     label: "Choose as a group",
@@ -59,7 +59,7 @@ export const composerTemplateChips: ComposerTemplateChip[] = [
   },
 ];
 
-export const launchTemplates: LaunchTemplate[] = [
+export const launchTemplates: readonly LaunchTemplate[] = [
   {
     id: "creative-direction",
     label: "Choose a name or creative direction",
