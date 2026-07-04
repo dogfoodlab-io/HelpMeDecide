@@ -42,4 +42,35 @@ describe("recommendFramework", () => {
     expect(result.type).toBe("owner-decides-with-input");
     expect(result.reason).toContain("one accountable owner");
   });
+
+  it("keeps professional owner decisions ahead of scoring even with explicit criteria", () => {
+    const result = recommendFramework(
+      decision(
+        "Help our team choose between Agency Alpha and Studio Beta for a rebrand. We care about quality, cost, and timeline.",
+      ),
+    );
+
+    expect(result.type).toBe("owner-decides-with-input");
+    expect(result.reason).toContain("takes precedence over scoring or voting");
+  });
+
+  it("keeps explicit criteria ahead of group preference aggregation", () => {
+    const result = recommendFramework(
+      decision(
+        "My friends and I need to pick an activity tonight. We care about cost, distance, and energy level.",
+      ),
+    );
+
+    expect(result.type).toBe("weighted-scoring");
+    expect(result.reason).toContain("takes precedence over group preference aggregation");
+  });
+
+  it("falls back to pairwise comparison for small subjective solo decisions", () => {
+    const result = recommendFramework(
+      decision("Help me choose between Sketch A and Sketch B."),
+    );
+
+    expect(result.type).toBe("pairwise-comparison");
+    expect(result.reason).toContain("direct option-vs-option choices");
+  });
 });

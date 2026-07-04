@@ -73,6 +73,13 @@ function extractCriteria(prompt: string, decisionType: DecisionType): Criterion[
       weight: 1,
     }));
   }
+  if (/\bcheaper|cost\b/.test(text) && /\bcloser|distance\b/.test(text)) {
+    return ["cost", "distance", "quality"].map((label) => ({
+      id: `criterion-${label}`,
+      label,
+      weight: 1,
+    }));
+  }
   return ["fit", "cost", "confidence"].map((label) => ({
     id: `criterion-${label}`,
     label,

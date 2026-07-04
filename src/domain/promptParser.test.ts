@@ -101,4 +101,19 @@ describe("createDecisionFromPrompt", () => {
     expect(soloProfessionalDecision.visibility).toBe("private");
     expect(soloWorkPhraseDecision.visibility).toBe("private");
   });
+
+  it("normalizes personal tradeoff prompts into explicit criteria", () => {
+    const decision = createDecisionFromPrompt({
+      prompt:
+        "I am deciding which apartment to pick. One is cheaper, one is closer to work, and one has better amenities.",
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
+
+    expect(decision.map.criteria.map((criterion) => criterion.label)).toEqual([
+      "cost",
+      "distance",
+      "quality",
+    ]);
+  });
 });

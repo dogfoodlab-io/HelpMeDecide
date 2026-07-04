@@ -1,21 +1,29 @@
 import type { Decision, FrameworkRecommendation } from "./types";
 
-export function recommendFramework(decision: Decision): FrameworkRecommendation {
-  const prompt = decision.prompt.toLowerCase();
-  const hasGroup =
-    decision.visibility === "share-link" ||
-    decision.visibility === "team" ||
-    /\b(friends|team|our|group|we)\b/.test(prompt);
-  const hasExplicitTradeoffs =
-    /\bcheaper|closer|amenities|cost|quality|timeline|criteria|tradeoff\b/.test(
-      prompt,
-    );
+const DEFAULT_CRITERIA = new Set(["fit", "cost", "confidence"]);
 
-  if (decision.decisionType === "professional" || prompt.includes("agency")) {
+function hasGroupInput(decision: Decision): boolean {
+  return decision.visibility === "share-link" || decision.visibility === "team";
+}
+
+function hasExplicitDecisionTradeoffs(decision: Decision): boolean {
+  const criteriaLabels = decision.map.criteria.map((criterion) => criterion.label);
+  return criteriaLabels.some((label) => !DEFAULT_CRITERIA.has(label));
+}
+
+function isProfessionalOwnerDecision(decision: Decision): boolean {
+  return decision.decisionType === "professional";
+}
+
+export function recommendFramework(decision: Decision): FrameworkRecommendation {
+  const hasGroup = hasGroupInput(decision);
+  const hasExplicitTradeoffs = hasExplicitDecisionTradeoffs(decision);
+
+  if (isProfessionalOwnerDecision(decision)) {
     return {
       type: "owner-decides-with-input",
       reason:
-        "Use owner-decides-with-input because one accountable owner should make the final professional choice while stakeholder input is captured.",
+        "Use owner-decides-with-input because one accountable owner should make the final professional choice while stakeholder input is captured. This professional decision takes precedence over scoring or voting workflows.",
       assumptions: [
         "The decision has a responsible owner.",
         "Stakeholder input matters but does not need to become a binding vote.",
@@ -27,7 +35,7 @@ export function recommendFramework(decision: Decision): FrameworkRecommendation 
     return {
       type: "weighted-scoring",
       reason:
-        "Use weighted scoring because explicit criteria and tradeoffs should be compared consistently.",
+        "Use weighted scoring because explicit criteria and tradeoffs should be compared consistently. Criteria-based scoring takes precedence over group preference aggregation.",
       assumptions: [
         "The decision has explicit criteria or tradeoffs.",
         "Users can inspect and adjust weights before accepting the result.",
