@@ -55,16 +55,16 @@ describe("createDecisionFromPrompt", () => {
     const first = createDecisionFromPrompt({
       prompt,
       ownerId: "owner-1",
-      now: "2026-07-03T12:00:00.000Z",
+      now: "2026-07-03T12:00:00.123Z",
     });
     const second = createDecisionFromPrompt({
       prompt,
       ownerId: "owner-1",
-      now: "2026-07-03T12:01:00.000Z",
+      now: "2026-07-03T12:00:00.456Z",
     });
 
     expect(first.id).not.toBe(second.id);
-    expect(first.id).toContain("decision-help-me-compare-two-personal-options-2026-07-03t12-00-00");
+    expect(first.id).toContain("decision-help-me-compare-two-personal-options-2026-07-03t12-00-00-123z");
   });
 
   it("distinguishes team workspaces from ad hoc share-link groups", () => {
@@ -78,8 +78,14 @@ describe("createDecisionFromPrompt", () => {
       ownerId: "owner-1",
       now: "2026-07-03T12:00:00.000Z",
     });
+    const friendGroupDecision = createDecisionFromPrompt({
+      prompt: "Our group of friends needs to pick a restaurant tonight.",
+      ownerId: "owner-1",
+      now: "2026-07-03T12:00:00.000Z",
+    });
 
     expect(teamDecision.visibility).toBe("team");
     expect(friendDecision.visibility).toBe("share-link");
+    expect(friendGroupDecision.visibility).toBe("share-link");
   });
 });

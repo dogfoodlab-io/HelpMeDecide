@@ -15,8 +15,12 @@ function slug(input: string): string {
 
 function decisionId(prompt: string, now: string): string {
   const promptSlug = slug(prompt).slice(0, 36) || "draft";
-  const timeSlug = slug(now).slice(0, 20) || "now";
+  const timeSlug = slug(now) || "now";
   return `decision-${promptSlug}-${timeSlug}`;
+}
+
+function isTeamWorkspace(prompt: string): boolean {
+  return /\b(team|company|work|coworkers|colleagues|agency|vendor|rebrand)\b/i.test(prompt);
 }
 
 function inferDecisionType(prompt: string): DecisionType {
@@ -122,7 +126,7 @@ function buildMap(prompt: string, decisionType: DecisionType): DecisionMap {
 export function createDecisionFromPrompt(input: CreateDecisionInput): Decision {
   const decisionType = inferDecisionType(input.prompt);
   const isGroup = /\b(friends|team|our|group|we)\b/i.test(input.prompt);
-  const isTeam = /\b(team|our)\b/i.test(input.prompt);
+  const isTeam = isTeamWorkspace(input.prompt);
 
   return {
     id: decisionId(input.prompt, input.now),
