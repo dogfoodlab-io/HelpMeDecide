@@ -242,7 +242,7 @@ pending.push(
     assert.match(app, /useDecisionWorkspace/);
     assert.match(composer, /What are you deciding\?/);
     assert.match(composer, /composerTemplateChips/);
-    assert.match(workspace, /Decision Map/);
+    assert.match(workspace, /Decision Matrix/);
     assert.match(workspace, /Recommended workflow/);
     assert.match(paywall, /Free helps you decide/);
   }),

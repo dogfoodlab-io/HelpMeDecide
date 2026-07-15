@@ -7,7 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -p tsconfig.app.json --noEmit && node scripts/build.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "tsx scripts/run-tests.mjs",
+    "test": "tsx scripts/run-tests.mjs && node scripts/build-output.test.mjs",
     "test:watch": "tsx scripts/run-tests.mjs"
   },
   "dependencies": {
