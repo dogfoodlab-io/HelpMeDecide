@@ -9,12 +9,19 @@ describe("App", () => {
     expect(screen.getByText("HelpMeDecide.ai")).toBeInTheDocument();
     expect(
       screen.getByRole("heading", {
-        name: "Decide with structure before the group chat wins.",
+        name: "Make the call. Keep the receipts.",
       }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        "HelpMeDecide.ai turns messy choices into a decision map, the right framework, useful input lanes, and a shareable dossier.",
+        "HelpMeDecide turns scattered opinions, evidence, and constraints into the right process — then a clear recommendation everyone can inspect.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "One-size-fits-all voting is where good decisions go to die." })).toBeInTheDocument();
+    expect(screen.getByText("Weighted scoring")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Northline wins if timeline weight rises above 31%.",
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "What are you deciding?" })).toBeInTheDocument();
