@@ -3,6 +3,8 @@
 Date: 2026-07-03
 Status: Draft for user review
 
+> **Current product direction:** [HelpMeDecide Purchase Alpha](../../PRODUCT_ALPHA.md), dated 2026-10-23, narrows the first release to invited solo purchase decisions. This older broad product design remains background context and does not define alpha release gates.
+
 ## Product Thesis
 
 HelpMeDecide.ai is an AI decision workspace that helps individuals and groups turn messy decisions into structured, evidence-backed workflows and clear recommendations.

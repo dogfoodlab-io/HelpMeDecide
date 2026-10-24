@@ -2,7 +2,9 @@
 
 Date: 2026-07-11
 
-Status: Active planning baseline
+Status: Superseded for current release planning
+
+> **Current release target:** [HelpMeDecide Purchase Alpha](PRODUCT_ALPHA.md), dated 2026-10-23. Use that plan for active scope, sequence, and acceptance gates. This roadmap remains historical context; its generalized decision-engine, collaboration, billing, and team-beta gates are deferred and do not block the purchase alpha.
 
 Product specification: [Product Design](superpowers/specs/2026-07-03-helpmedecide-product-design.md)
 

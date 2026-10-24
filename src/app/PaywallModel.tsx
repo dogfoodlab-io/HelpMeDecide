@@ -4,12 +4,12 @@ export function PaywallModel() {
       <h3>Freemium model</h3>
       <p>
         Free helps you decide. Pro helps you decide with confidence and a
-        professional artifact.
+        complete scoring workspace.
       </p>
       <div className="pricing-grid">
-        <span>Free: basic map, basic frameworks, limited dossier</span>
-        <span>Pro: full exports, more research runs, private share links</span>
-        <span>Team: templates, audit trail, criteria libraries, branded dossiers</span>
+        <span>Free: basic matrix, basic frameworks, limited exports</span>
+        <span>Pro: full score tables, more research runs, private share links</span>
+        <span>Team: templates, audit trail, criteria libraries, branded matrices</span>
       </div>
     </section>
   );

@@ -1,5 +1,8 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { build } from "esbuild";
+import { loadEnv } from "vite";
+
+const env = loadEnv("production", process.cwd(), "VITE_");
 
 await rm("dist", { force: true, recursive: true });
 await mkdir("dist/assets", { recursive: true });
@@ -11,6 +14,7 @@ await writeFile("dist/assets/index.css", css);
 await build({
   entryPoints: ["src/main.tsx"],
   bundle: true,
+  define: { "import.meta.env": JSON.stringify({ VITE_SUPABASE_URL: env.VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY: env.VITE_SUPABASE_PUBLISHABLE_KEY }) },
   outfile: "dist/assets/index.js",
   format: "esm",
   jsx: "automatic",

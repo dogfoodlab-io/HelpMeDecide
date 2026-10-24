@@ -9,6 +9,7 @@ const [
   inputs,
   collaboration,
   dossier,
+  purchaseDecision,
 ] = await Promise.all([
   import("../src/domain/templates.ts"),
   import("../src/domain/promptParser.ts"),
@@ -17,6 +18,7 @@ const [
   import("../src/domain/inputs.ts"),
   import("../src/domain/collaboration.ts"),
   import("../src/domain/dossier.ts"),
+  import("../src/domain/purchaseDecision.ts"),
 ]);
 
 function test(name, fn) {
@@ -41,6 +43,75 @@ function test(name, fn) {
 }
 
 const pending = [];
+const budget = await import('../src/domain/purchaseBudget.ts');
+pending.push(test('research budget checks preserve unknowns and compare only matching currencies', () => {
+  assert.equal(budget.explicitBudgetMaximum('under $600'),600);
+  assert.equal(budget.explicitBudgetMaximum('500–800'),800);
+  assert.equal(budget.explicitBudgetMaximum('about 600 but flexible'),null);
+  assert.equal(budget.assessResearchPrice({amount:675,currency:'USD'},{budget:'under 600',currency:'USD'}),'fail');
+  assert.equal(budget.assessResearchPrice({amount:415,currency:'USD'},{budget:'under 600',currency:'USD'}),'pass');
+  assert.equal(budget.assessResearchPrice({amount:415,currency:'EUR'},{budget:'under 600',currency:'USD'}),'unknown');
+  assert.equal(budget.assessResearchPrice(null,{budget:'under 600',currency:'USD'}),'unknown');
+}));
+const intake = await import('../src/domain/purchaseIntake.ts');
+pending.push(test('purchase intake extracts natural lists without requiring between', () => {
+  const prompt = "Help may choose a watch to buy. I'm looking at the Omega Speedmaster, the Hamilton Field Khaki, the Orient Bambino, the Tudor Black Bay, and the Christopher Ward Biscay GMT.";
+  assert.deepEqual(intake.suppliedContenders(prompt).map(candidate => candidate.label), ['Omega Speedmaster','Hamilton Field Khaki','Orient Bambino','Tudor Black Bay','Christopher Ward Biscay GMT']);
+  assert.deepEqual(intake.suppliedContenders('I am considering Sony WH-1000XM5 or Bose QuietComfort Ultra for commuting.').map(candidate => candidate.label), ['Sony WH-1000XM5','Bose QuietComfort Ultra']);
+  assert.deepEqual(intake.suppliedContenders('Compare Seiko vs. Citizen under $600.').map(candidate => candidate.label), ['Seiko','Citizen']);
+  assert.deepEqual(intake.suppliedContenders('I want a watch under $500.'), []);
+  assert.equal(intake.suppliedContenders('Options: Seiko, seiko, Citizen').length, 2);
+}));
+
+pending.push(
+  test("purchase constraints preserve unknown values and required failures", () => {
+    const required = { id: "waterproof", label: "Water resistant", required: true, provenance: "user-stated" };
+    assert.equal(purchaseDecision.assessConstraint(undefined, required), "unknown");
+    assert.equal(purchaseDecision.assessConstraint(false, required), "fail");
+    assert.equal(purchaseDecision.assessConstraint(true, required), "pass");
+  }),
+);
+
+pending.push(
+  test("Pareto dominance requires known values on every selected axis", () => {
+    const candidates = [
+      { id: "a", label: "A", attributes: { battery: 60 }, price: { amount: 500, currency: "USD", observedAt: "2026-10-23" }, provisional: false },
+      { id: "b", label: "B", attributes: { battery: 40 }, price: { amount: 600, currency: "USD", observedAt: "2026-10-23" }, provisional: false },
+      { id: "c", label: "C", attributes: { battery: null }, provisional: false },
+    ];
+    assert.deepEqual(purchaseDecision.findDominatedCandidates(candidates.slice(0, 2), [
+      { key: "battery", direction: "higher" }, { key: "price", direction: "lower" },
+    ]), ["b"]);
+    assert.deepEqual(purchaseDecision.findDominatedCandidates(candidates, [
+      { key: "battery", direction: "higher" }, { key: "price", direction: "lower" },
+    ]), ["b"]);
+  }),
+);
+
+pending.push(
+  test("pairwise actions are revision-checked, idempotent, and ordinal", () => {
+    const model = {
+      revision: 2,
+      goal: "Choose a watch",
+      useCases: ["daily wear"],
+      constraints: [],
+      candidates: [
+        { id: "a", label: "A", attributes: {}, provisional: false },
+        { id: "b", label: "B", attributes: {}, provisional: false },
+      ],
+      preferences: [],
+    };
+    const input = { actionId: "action-1", expectedRevision: 2, leftId: "a", rightId: "b", choice: "tie" };
+    const updated = purchaseDecision.applyPairwiseObservation(model, input);
+    assert.equal(updated.revision, 3);
+    assert.equal(updated.preferences[0].payload.choice, "tie");
+    assert.equal(updated.preferences[0].provenance, "user-stated");
+    assert.equal(purchaseDecision.applyPairwiseObservation(updated, input), updated);
+    assert.throws(() => purchaseDecision.applyPairwiseObservation(updated, { ...input, choice: "left" }), /already used/);
+    assert.throws(() => purchaseDecision.applyPairwiseObservation(updated, { ...input, actionId: "action-2" }), /out of date/);
+    assert.throws(() => purchaseDecision.applyPairwiseObservation(model, { ...input, leftId: "missing" }), /different candidates/);
+  }),
+);
 
 pending.push(
   test("template catalogs match product surfaces", () => {
@@ -227,24 +298,6 @@ pending.push(
     });
     assert.equal(generated.recommendedOption, "Agency Alpha");
     assert.deepEqual(generated.dissent, ["Concern: Studio Beta may be slower."]);
-  }),
-);
-
-pending.push(
-  test("app source wires the prompt-first workspace", async () => {
-    const [app, composer, workspace, paywall] = await Promise.all([
-      readFile(new URL("../src/App.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../src/app/Composer.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../src/app/Workspace.tsx", import.meta.url), "utf8"),
-      readFile(new URL("../src/app/PaywallModel.tsx", import.meta.url), "utf8"),
-    ]);
-
-    assert.match(app, /useDecisionWorkspace/);
-    assert.match(composer, /What are you deciding\?/);
-    assert.match(composer, /composerTemplateChips/);
-    assert.match(workspace, /Decision Matrix/);
-    assert.match(workspace, /Recommended workflow/);
-    assert.match(paywall, /Free helps you decide/);
   }),
 );
 

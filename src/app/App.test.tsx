@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import App from "../App";
 
 describe("App", () => {
-  it("creates a prompt-first workspace and shows the decision map, input lanes, workflow, dossier, collaborator view, and freemium model", async () => {
+  it("creates a prompt-first workspace and shows the decision matrix, input lanes, workflow, outcome, collaborator view, and freemium model", async () => {
     const user = userEvent.setup();
     render(<App />);
 
@@ -14,7 +14,7 @@ describe("App", () => {
     );
     await user.click(screen.getByRole("button", { name: "Create decision workspace" }));
 
-    expect(screen.getByText("Decision Map")).toBeInTheDocument();
+    expect(screen.getByText("Decision Matrix")).toBeInTheDocument();
     expect(screen.getByText("Flights under $400")).toBeInTheDocument();
     expect(screen.getByText("Opinions")).toBeInTheDocument();
     expect(screen.getByText("Data")).toBeInTheDocument();
@@ -24,7 +24,7 @@ describe("App", () => {
     expect(screen.getByText("Collaborator share view")).toBeInTheDocument();
     expect(
       screen.getByText(
-        "Free helps you decide. Pro helps you decide with confidence and a professional artifact.",
+        "Free helps you decide. Pro helps you decide with confidence and a complete scoring workspace.",
       ),
     ).toBeInTheDocument();
   });
