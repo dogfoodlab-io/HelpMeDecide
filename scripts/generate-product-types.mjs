@@ -1,0 +1,10 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const backend=new URL('../backend/',import.meta.url);
+const root=new URL('../',import.meta.url);
+function type(n){if(n.$ref)return n.$ref.split('/').at(-1);if('const'in n)return JSON.stringify(n.const);if(n.enum)return n.enum.map(x=>JSON.stringify(x)).join(' | ');if(n.anyOf||n.oneOf)return(n.anyOf??n.oneOf).map(type).join(' | ');if(n.type==='object')return `{ ${Object.entries(n.properties??{}).map(([k,v])=>`${JSON.stringify(k)}${n.required?.includes(k)?'':'?'}: ${type(v)}`).join('; ')} }`;if(n.type==='array')return `Array<${type(n.items)}>`;if(n.type==='integer')return'number';return n.type;}
+const schema=JSON.parse(await readFile(new URL('contracts/product-command.v1.schema.json',backend),'utf8'));
+const research=JSON.parse(await readFile(new URL('contracts/research-result.v2.schema.json',backend),'utf8'));
+const output=`// Generated from backend/contracts/product-command.v1.schema.json and research-result.v2.schema.json.\n${Object.entries(schema.$defs).map(([k,v])=>`export type ${k} = ${type(v)};`).join('\n')}\nexport type ProductCommand = ${type(schema)};\nexport type ProductResearchResult = ${type(research)};\n`;
+for(const target of [new URL('src/domain/productEvidence.generated.ts',root),new URL('supabase/functions/_shared/productEvidence.generated.ts',backend)]){if(process.argv.includes('--check')){if(await readFile(target,'utf8')!==output)throw Error('Product contract types are stale. Run npm run contracts:generate.');}else await writeFile(target,output);}
+for(const name of ['product-command.v1.schema.json','research-result.v2.schema.json']){if(await readFile(new URL('contracts/'+name,backend),'utf8')!==await readFile(new URL('supabase/functions/_shared/'+name,backend),'utf8'))throw Error('Runtime product contract drift');}
+const domain=await readFile(new URL('supabase/functions/_shared/productEvidence.ts',backend),'utf8');const target=new URL('src/domain/productEvidence.ts',root);if(process.argv.includes('--check')){if(await readFile(target,'utf8')!==domain)throw Error('Shared product evaluation is stale');}else await writeFile(target,domain);

@@ -1,3 +1,5 @@
+import {createProductRepository} from './products';
+import type {ProductCommand} from '../domain/productEvidence.generated';
 import { experimentLearning } from '../domain/whatIf';
 import type { WhatIfAnswer } from '../domain/exploration.generated';
 import { scenarioName } from '../domain/scenarioNames';
@@ -25,6 +27,7 @@ export interface PairwiseCommand {
 }
 export interface ContenderCommand { actionId: string; expectedRevision: number; candidates: Array<{ id: string; label: string }> }
 export interface DecisionRepository {
+  applyProduct?(id: string, command: ProductCommand): Promise<SavedDecision>;
   applyExploration(id: string, command: ExerciseCommand): Promise<SavedDecision>;
   saveContext(id: string, command: {actionId: string; expectedRevision: number; context: Record<string,string>}): Promise<SavedDecision>;
   setContenders(id: string, command: ContenderCommand): Promise<SavedDecision>;
@@ -38,10 +41,19 @@ export function initialPurchaseModel(prompt: string, ownerId: string): PurchaseD
   const parsed = createDecisionFromPrompt({ prompt, ownerId, now: new Date().toISOString() });
   return {
     revision: 0, goal: parsed.map.goal, useCases: [],
+    context: initialContext(prompt),
     constraints: parsed.map.constraints.map((label, i) => ({ id: `constraint-${i}`, label, required: true, provenance: 'inferred' })),
     candidates: suppliedContenders(prompt),
     preferences: [],
   };
+}
+export function initialContext(prompt:string):Record<string,string>{
+  const result:Record<string,string>={};
+  const budget=prompt.match(/\b(?:under|below|up to|maximum(?: of)?|budget(?: of)?)\s*[$€£]?\s*(\d[\d,]*(?:\.\d+)?)/i);if(budget)result.budget=budget[1].replace(/,/g,'');
+  const currency=prompt.match(/\b(USD|EUR|GBP|CAD|AUD|JPY)\b/i);if(currency)result.currency=currency[1].toUpperCase();
+  const region=prompt.match(/\b(United States|United Kingdom|Canada|Australia|Japan)\b/i);if(region)result.region=region[1];
+  const purpose=prompt.match(/\bfor\s+(.+?)(?=\s+(?:under|below|up to)\b|[.!]|$)/i);if(purpose)result.purpose=purpose[1].trim();
+  return result;
 }
 const fields = 'id,title,description,revision,canonical_model,archived_at,updated_at';
 export function createDecisionRepository(client: SupabaseClient): DecisionRepository {
@@ -52,6 +64,7 @@ export function createDecisionRepository(client: SupabaseClient): DecisionReposi
   };
   return {
     get,
+    async applyProduct(id,command){await createProductRepository(client).apply(id,command);return get(id);},
     async applyExploration(id, command) {
       const {error} = command.type==='answer-what-if'
         ? await client.rpc('answer_what_if', {p_decision_id:id,p_action_id:command.actionId,p_revision:command.expectedRevision,p_payload:command.payload})

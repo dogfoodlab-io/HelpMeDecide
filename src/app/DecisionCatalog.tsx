@@ -1,3 +1,5 @@
+import {EvidenceTradeoffMap} from './EvidenceTradeoffMap';
+import {suggestedAxes} from '../domain/productEvidence';
 import { GuidedWhatIf } from './GuidedWhatIf';
 import { scenarioName, scenarioDetails, suggestedScenarioName } from '../domain/scenarioNames';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
@@ -71,6 +73,7 @@ function NumericWhatIf({context}:{context:ComponentContext}) {
 
 function Tradeoff({context}:{context:ComponentContext}) {
   const {model,draft,change,disabled}=useExercise();
+  if(suggestedAxes(model).length===2&&!draft.mapEditor)return <EvidenceTradeoffMap model={model} draft={draft} change={change} disabled={disabled} submit={(type,payload)=>dispatch(context,type,payload)}/>;
   if(comparableAxes(model).length===2||draft.mapEditor)return <TradeoffEditor context={context}/>;
   return <div className="guided-map-empty"><h3>Start with the tradeoff, then the measurements</h3><p>There aren’t comparable measurements for these contenders yet. We can first explore which compromise you would accept, using questions about the options already on your board.</p><button type="button" className="composer-submit" disabled={disabled} onClick={()=>dispatch(context,'open-what-if',{})}>Explore a suggested tradeoff</button><details><summary>I have measurements to add</summary><p>If you already know comparable values, you can add them and build your own map.</p><button type="button" disabled={disabled} onClick={()=>change({mapEditor:true})}>Add my own measurements</button></details></div>;
 }
@@ -104,7 +107,7 @@ export function createDecisionProcessor(kind:ExerciseKind,key:string,onAction:(t
   let messages:unknown;let fallback=false;
   for(let attempt=0;attempt<2;attempt++){try{messages=generate();validateExerciseMessages(messages,kind,key);break;}catch{messages=undefined;}}
   if(!messages){messages=exerciseMessages(kind,key);fallback=true;}
-  const permitted:Record<ExerciseKind,string[]>={PairwiseChoice:['pairwise'],PriorityRanker:['rank'],WhatIfExplorer:['save-scenario','apply-scenario','clear-scenario','answer-what-if','continue-guide'],TradeoffMap:['map','open-what-if']};
+  const permitted:Record<ExerciseKind,string[]>={PairwiseChoice:['pairwise'],PriorityRanker:['rank'],WhatIfExplorer:['save-scenario','apply-scenario','clear-scenario','answer-what-if','continue-guide'],TradeoffMap:['map','evidence-map','open-what-if']};
   const processor=new MessageProcessor<ReactCatalogComponent>([decisionCatalog],action=>{
     if(action.name!=='decision-action')return;
     const payload=z.record(z.unknown()).safeParse(action.context.payload);

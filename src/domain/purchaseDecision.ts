@@ -11,6 +11,8 @@ export interface PurchaseConstraint {
 }
 
 export interface PurchaseCandidate {
+  evidence?: import('./productEvidence.generated').ProductEvidence;
+  evidenceHistory?: import('./productEvidence.generated').ProductEvidence[];
   sourceFindingId?: string;
   id: string;
   label: string;
@@ -30,6 +32,8 @@ export interface PreferenceObservation {
 }
 
 export interface PurchaseDecisionModel {
+  requirements?: import('./productEvidence.generated').Requirement[];
+  evidenceMapAxes?: string[];
   finalChoice?: import('../services/briefs').FinalChoice;
   criteria?: Criterion[];
   dimensions?: Dimension[];

@@ -1,3 +1,4 @@
+import {evaluateRequirements,suggestedAxes,evidenceDominance} from './productEvidence';
 import { savedExperimentAnswers, experimentLearning } from './whatIf';
 import type { PurchaseCandidate, PurchaseDecisionModel } from './purchaseDecision';
 import { explicitBudgetMaximum } from './purchaseBudget';
@@ -40,7 +41,9 @@ export function evaluate(model:PurchaseDecisionModel,scenario?:Scenario,axisIds?
     for(const axis of axes){const av=quantity(model,a,axis,applied),bv=quantity(model,b,axis,applied);if(av===null||bv===null||!Number.isFinite(av)||!Number.isFinite(bv))return false;if(axis.direction==='higher'?av<bv:av>bv)return false;if(av!==bv)strict=true;}
     return strict;
   };
-  const dominated=model.candidates.filter(candidate=>model.candidates.some(other=>other.id!==candidate.id&&dominates(other,candidate))).map(candidate=>candidate.id);
+  const legacyDominated=model.candidates.filter(candidate=>model.candidates.some(other=>other.id!==candidate.id&&dominates(other,candidate))).map(candidate=>candidate.id);
+  const dominated=model.evidenceMapAxes?.length?evidenceDominance(model,model.evidenceMapAxes):legacyDominated;
+  const requirements=evaluateRequirements(model);
   const edges=new Map<string,Set<string>>();
   for(const pref of model.preferences.filter(pref=>pref.kind==='pairwise'&&pref.provenance!=='superseded')) {
     const {leftId,rightId,choice}=pref.payload;if(choice!=='left'&&choice!=='right')continue;
@@ -55,13 +58,15 @@ export function evaluate(model:PurchaseDecisionModel,scenario?:Scenario,axisIds?
   const ranking=[...model.preferences].reverse().find(pref=>pref.kind==='criteria-rank');
   const priorities=(ranking?.payload.orderedIds as string[]|undefined)?.map(id=>(ranking?.payload.criteria as Criterion[]|undefined)?.find(criterion=>criterion.id===id)?.label??criteriaFor(model).find(criterion=>criterion.id===id)?.label??id)??[];
   const agenda=[
+    ...requirements.filter(r=>r.rule.required&&r.verdict==='unknown').map(r=>`Check ${r.rule.label} for ${model.candidates.find(c=>c.id===r.candidateId)?.label}. ${r.reason}`),
+    ...requirements.filter(r=>r.rule.required&&r.verdict==='fail').map(r=>`${model.candidates.find(c=>c.id===r.candidateId)?.label} fails ${r.rule.label}. It cannot satisfy your current must-haves.`),
     ...(priorities.length?[`Research ${priorities[0]} first. This priority order guides which evidence to collect.`]:['Clarify which criteria matter most.']),
     ...savedExperimentAnswers(model).map(answer=>experimentLearning(model,answer).nextCheck),
     ...budget.filter(item=>item.verdict==='unknown').map(item=>`Confirm a comparable ${currency||'local-currency'} price for ${item.label}.`),
     ...axes.flatMap(axis=>model.candidates.filter(candidate=>quantity(model,candidate,axis,applied)===null).map(candidate=>`Find ${axis.label} (${axis.unit||'unit not set'}) for ${candidate.label}.`)),
     ...(contradictory?['Preferences conflict. Revisit the tradeoff or try the products; do not force a single winner.']:[]),
   ];
-  return {maximum,currency,budget,dominated,axes,contradictory,priorities,agenda,assumed:!!applied};
+  return {maximum,currency,budget,requirements,dominated,axes,contradictory,priorities,agenda,assumed:!!applied};
 }
 export type NextExercise={kind:ExerciseKind|'context'|'research'|'reflection'|'review';key:string;title:string;reason:string;pair?:[string,string];field?:string};
 export function nextExercise(model:PurchaseDecisionModel):NextExercise {
@@ -77,7 +82,7 @@ export function nextExercise(model:PurchaseDecisionModel):NextExercise {
   const pair=pairs.find(pair=>!answered.has([...pair].sort().join('|'))&&!skipped.has(`pair:${[...pair].sort().join('|')}`));
   if(pair&&answered.size<1)return {kind:'PairwiseChoice',key:`pair:${[...pair].sort().join('|')}`,pair,title:'Which would you rather own?',reason:'An appeal judgment helps separate personal preference from researched facts.'};
   if(!savedExperimentAnswers(model).length&&!skipped.has('scenario'))return {kind:'WhatIfExplorer',key:'scenario',title:'What could change your mind?',reason:'Choose a suggested situation to explore. We’ll show what your answer changes.'};
-  if(!(model.selectedAxes?.length)&&comparableAxes(model).length===2&&!skipped.has('map'))return {kind:'TradeoffMap',key:'map',title:'Make the compromise visible',reason:'Compare two dimensions with known units. Missing measurements remain unknown.'};
+  if(!(model.selectedAxes?.length)&&!(model.evidenceMapAxes?.length)&&(comparableAxes(model).length===2||suggestedAxes(model).length===2)&&!skipped.has('map'))return {kind:'TradeoffMap',key:'map',title:'Make the compromise visible',reason:'Compare two dimensions with known units. Missing measurements remain unknown.'};
   for(const perspective of ['future-self','devils-advocate'])if(!(perspective==='future-self'&&savedExperimentAnswers(model).some(answer=>['use','longevity'].includes(answer.mode)))&&!model.reflections?.some(item=>item.perspective===perspective)&&!skipped.has(`reflection:${perspective}`))return {kind:'reflection',key:`reflection:${perspective}`,field:perspective,title:perspective==='future-self'?'Imagine yourself six months from now':'What is the strongest reason to wait?',reason:perspective==='future-self'?'What would make you glad you chose it, and what might you regret?':'Name the downside, unnecessary purchase, or missing experience that could change your mind.'};
   return {kind:'review',key:'review',title:'You have enough to review the tradeoffs',reason:'No more automatic questions. Review the evaluation, investigate an unknown, or explicitly reopen an exercise.'};
 }

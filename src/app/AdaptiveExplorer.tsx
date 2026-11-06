@@ -1,3 +1,4 @@
+import type {ProductCommand} from '../domain/productEvidence.generated';
 import { experimentLearning } from '../domain/whatIf';
 import type { WhatIfAnswer } from '../domain/exploration.generated';
 import { scenarioName } from '../domain/scenarioNames';
@@ -34,7 +35,9 @@ export function AdaptiveExplorer({decision,repository,onSaved}:{decision:SavedDe
     const command=pending??{actionId:crypto.randomUUID(),expectedRevision:draft._revision??decision.revision,type,payload};
     lock.current=true;setPending(command);setBusy(true);setMessage('Saving your answer…');
     try {
-      const next=command.type==='pairwise'
+      const next=command.type==='evidence-map'
+        ?await (repository.applyProduct?repository.applyProduct(decision.id,command as ProductCommand):Promise.reject(new Error('Connect the saved workspace to save this comparison.')))
+        :command.type==='pairwise'
         ?await repository.choose(decision.id,{actionId:command.actionId,expectedRevision:command.expectedRevision,leftId:String(command.payload.leftId),rightId:String(command.payload.rightId),choice:command.payload.choice as PairwiseChoice})
         :command.type==='context'
         ?await repository.saveContext(decision.id,{actionId:command.actionId,expectedRevision:command.expectedRevision,context:command.payload as Record<string,string>})
@@ -42,7 +45,7 @@ export function AdaptiveExplorer({decision,repository,onSaved}:{decision:SavedDe
       onSaved(next);setPending(null);setHeld(null);setDrafts(current=>{const copy={...current};delete copy[exercise.key];return copy;});
       if(command.type==='save-scenario'){setManual('WhatIfExplorer');setDrafts(current=>({...current,'manual:WhatIfExplorer':{whatIfView:'numbers'}}));}
       if(command.type==='answer-what-if'){setManual('WhatIfExplorer');setDrafts(current=>({...current,'manual:WhatIfExplorer':{whatIfView:'question',experiment:command.payload,_revision:next.revision}}));}
-      const changed:Record<string,string>={rank:'Ranking saved. Your priority order now focuses the questions and research agenda.',pairwise:'Preference saved. This is personal appeal evidence; product facts still need verification.', 'save-scenario':'Scenario saved separately. Your preferences and research allowance are unchanged. Apply it only if you want it to affect evaluation.', 'clear-scenario':'Scenario assumptions removed. Your stated budget stays as applied; edit Purchase context to change it.', 'apply-scenario':'Scenario applied. The evaluation now labels its assumptions, and its budget becomes your stated budget.',map:'Map saved. Evaluation uses only comparable known values. Your written judgment is saved as preference evidence.',context:'Context saved. Research can now use this answer.',skip:'Skipped. The guide will not ask this question again.',reflection:'Reflection saved. This is part of your decision record.'};
+      const changed:Record<string,string>={'evidence-map':'Comparison saved with your judgment. Reported facts and actual requirements are unchanged.',rank:'Ranking saved. Your priority order now focuses the questions and research agenda.',pairwise:'Preference saved. This is personal appeal evidence; product facts still need verification.', 'save-scenario':'Scenario saved separately. Your preferences and research allowance are unchanged. Apply it only if you want it to affect evaluation.', 'clear-scenario':'Scenario assumptions removed. Your stated budget stays as applied; edit Purchase context to change it.', 'apply-scenario':'Scenario applied. The evaluation now labels its assumptions, and its budget becomes your stated budget.',map:'Map saved. Evaluation uses only comparable known values. Your written judgment is saved as preference evidence.',context:'Context saved. Research can now use this answer.',skip:'Skipped. The guide will not ask this question again.',reflection:'Reflection saved. This is part of your decision record.'};
       setMessage(command.type==='answer-what-if'?`Insight saved. ${experimentLearning(next.canonical_model,command.payload as unknown as WhatIfAnswer).insight}`:changed[command.type]??'Saved.');
     } catch(error) {
       if((error as {code?:string}).code==='40001') {
@@ -76,6 +79,7 @@ export function DecisionEvaluation({decision}:{decision:SavedDecision}) {
     {assessment.priorities.length>0&&<p>Priority order: {assessment.priorities.join(' → ')}.</p>}
     {assessment.assumed&&<p className="provisional-tag">Applied scenario: {applied?scenarioName(model,applied):'saved assumptions'} · calculations include assumptions. These do not verify product facts.</p>}
     <h3>Budget fit</h3><p className="muted">{assessment.maximum===null?'Budget maximum unknown':`Maximum ${assessment.currency||'currency unknown'} ${assessment.maximum}`} · before tax and shipping</p><ul>{assessment.budget.map(item=><li key={item.id}>{item.label}: <strong>{item.verdict==='pass'?'within stated budget':item.verdict==='fail'?'above stated budget':'unknown'}</strong></li>)}</ul>
+    {assessment.requirements.length>0&&<><h3>Must-have checks</h3><ul>{assessment.requirements.map(r=><li key={`${r.candidateId}-${r.rule.id}`}>{model.candidates.find(c=>c.id===r.candidateId)?.label} · {r.rule.label}: <strong>{r.verdict==='pass'?'meets':r.verdict==='fail'?'doesn’t meet':'needs checking'}</strong></li>)}</ul></>}
     {assessment.contradictory&&<p role="note">Your comparisons conflict. Keep both judgments while you explore why; there is no forced winner.</p>}
     <p>{assessment.dominated.length?`${assessment.dominated.map(id=>model.candidates.find(candidate=>candidate.id===id)?.label).join(', ')} is dominated on the selected dimensions only.`:'No dominance established. More than one option can remain a good fit.'}</p>
     <h3>Research agenda</h3><ul>{assessment.agenda.map((item,index)=><li key={index}>{item}</li>)}</ul><p className="muted">Personal rankings guide attention. A recommendation still needs evidence about your accepted tradeoffs.</p>

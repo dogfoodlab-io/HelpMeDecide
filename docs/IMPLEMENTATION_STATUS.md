@@ -1,49 +1,40 @@
-# HelpMeDecide: recommendation and decision finish
+# HelpMeDecide: product evidence, must-haves and sourced comparisons
 
-Updated: 2026-10-24. Local implementation; committed separately in the frontend and backend repositories. No push or deployment performed.
+Updated 2026-10-24. This phase implements punch-list items 1–3 locally. Changes in this phase are uncommitted; nothing was pushed or deployed.
 
-## What this phase adds
+## What is available
 
-- **Help me decide** requests a recommendation from OpenRouter using the saved contenders, context, research evidence and current preferences. No new search is started. It can recommend buying, waiting, not buying, or investigating a specific uncertainty.
-- Generation runs in a durable background job. Closing the browser does not cancel it. Cancellation, a daily allowance, private ownership, stale revisions and duplicate requests are enforced on the server.
-- Completed briefs are saved as immutable numbered versions, with their original evidence and preference snapshot. They explain the recommendation, proposed compromises, recorded answers, uncertainty, what could change the answer and next steps. Facts, preference understanding and recommendation stability are assessed separately.
-- **What will you do?** records your own choice independently of the app’s recommendation. Writing a reason is optional. **Revisit my decision** reopens exploration and preserves history.
-- **Print / save PDF** exports the selected brief, sources and a matching recorded choice. Changes to options, context, preferences or evidence mark an older brief out of date. Recording or reopening your choice alone does not.
+- Rich contender cards show a resolved brand/model/variant, dated prices and offers, reported availability, decision-relevant specifications and source excerpts. Images appear when a supported public manufacturer preview can be retrieved; otherwise the card explicitly says the image is unavailable.
+- New research produces a versioned, typed product-evidence result. It resolves supplied names, links and descriptions, proposes exact products, and can enrich an existing contender rather than duplicate it. Adopting enriched details preserves the contender ID, personal preferences, user label and authoritative corrections.
+- **Your must-haves** offers concrete checks from the context already supplied. Confirm one with **Make this a must-have**, or confirm the group. Each product then shows **Meets**, **Doesn’t meet**, or **Needs checking**. Numeric limits, yes/no requirements and text matches are supported. Editing or adding a requirement is secondary.
+- Research-backed facts and personal experience remain distinct. Manufacturer comfort copy cannot prove comfort for you. Conflicting supported claims stay unresolved until reviewed; missing values never become zero. Explicit corrections survive later research.
+- **Tradeoff map** proposes axes from comparable saved measurements and prices, with a populated table and plot. There are no measurement-entry fields in this default path. Unknown/incompatible/conflicting points stay in the table and are excluded from the plot. Neutral dimensions such as case size do not imply that smaller or larger is universally better.
+- The brief generator receives deterministic requirement results and rejects a buy recommendation for a contender with a known required failure.
 
-## Quick live-result check: 2 minutes
+## Quick exploratory guide: 5 minutes
 
-These briefs are already generated; opening them does not make another AI request.
+1. Open the [watch decision](http://127.0.0.1:5174/?decision=7a89a6d9-e22d-4d08-93c4-3432f4fdc40e). Its adopted contenders now contain real source-backed product details. Open **Offers, specifications & sources**. Expect Citizen BM8180-03E and the researched Seiko SRPK89 variant, quoted measurements, original source dates, and a Seiko product image. The existing user-entered family label is preserved; the resolved model is shown beneath it.
+2. Choose **Tradeoff map**. Expect a ready-to-use price versus case-width comparison: Citizen 37 mm and Seiko 37.4 mm. No dimensions or measurements need to be authored. The view should explain that size is a difference, not a universal better/worse ranking.
+3. Open the [headphone decision](http://127.0.0.1:5174/?decision=89205458-eadc-454d-bffc-e7e8d9016d7d) and choose **Tradeoff map**. Expect sourced prices and battery-life figures. Sennheiser’s unknown current price keeps it off the two-axis plot while retaining its row in the table. Open the Bose card for its image and source evidence. Some facts remain unconfirmed because their value was not established by the saved excerpt.
+4. Open the [fictional evidence sandbox](http://127.0.0.1:5174/?decision=401667b6-ec56-4bfb-8bdc-3d911aca8516). It already has a 25-hour battery requirement. On Sample A choose **Review or correct a fact**, select **Battery life**, enter **20**, and save. Expect **Doesn’t meet**. Change it to **30** and expect **Meets**. Refresh: the correction should remain. A later fictional source reporting 18 hours has already been adopted during verification; the explicit 30-hour correction remains authoritative.
+5. In the sandbox, inspect Sample C’s conflicting weight reports. Expect **Sources disagree**. In the map choose weight as an axis: that value must remain unknown, not zero. Choose a ready-made tradeoff judgment, save the comparison and refresh. The selected axes and judgment should persist.
+6. For a personal check, use **Your must-haves** to confirm the suggested comfort requirement if it is not already active. On Sample B choose **Review or correct a fact → Comfort I have checked myself**. **No** produces a failure, **Yes** passes, and **Not sure / unknown** remains unresolved. These are fictional verification answers, not real experience with the products.
 
-1. Open the [saved watch decision](http://127.0.0.1:5174/?decision=7a89a6d9-e22d-4d08-93c4-3432f4fdc40e). Expect **Buy · Citizen Garrison / Chandler BM8180-03E** in brief version 1. It should explain the saved preference over Seiko, the small-wrist use case and the saved price, with a concrete stock/return-policy check before buying.
-2. Open the [saved headphone decision](http://127.0.0.1:5174/?decision=89205458-eadc-454d-bffc-e7e8d9016d7d). Expect **Buy · Bose QuietComfort SC Headphones** in **version 2**. It should use the saved Bose-over-Sony preference, distinguish variants and unknown prices, and correctly say that Sony at $349.99 fits a $350 maximum.
-3. In either brief, follow the numbered evidence links and read **What remains uncertain** and **What could change the answer**. A known source link means the citation belongs to saved evidence, not that every product claim is independently verified. Prices are dated observations. Refresh or leave and return: the brief should remain.
-4. Use the fictional fixture below to explore recording a choice, reopening, version history and export without changing these two live examples. **Update my Decision Brief** makes another paid provider request; it is unnecessary for this review.
+The sandbox has fictional products, prices and sources, with automatic research disabled. None of these exploratory steps requires a provider request. Opening existing live cards/maps also makes no new AI request. **Fill in product details from saved sources** is an explicit, allowance-limited extraction request; it reuses stored research without another search. The existing local test account has exhausted its normal daily research allowance during verification; viewing, editing, requirement checks and maps remain available.
 
-## Exploratory check: 4 minutes, no AI request needed
+Existing Decision Briefs on the watch/headphone examples are now marked out of date because the underlying evidence changed. That is expected; they are historical snapshots, not summaries of the newly enriched cards.
 
-Open the [fictional headphone verification decision](http://127.0.0.1:5174/?decision=33a21b59-3a30-4a92-a9e0-9262dbbcc654). This fixture has **two hand-authored, clearly labeled synthetic briefs**. They are interface test data, not AI output or purchasing advice. Automatic research is exhausted intentionally for this fixture.
+## Verification performed
 
-1. Find **Your decision, brought together** beside the contender board (below the board on a narrow screen). Read the app’s recommendation and next step. You should be able to record a choice without creating anything or writing an answer.
-2. Under **What will you do?**, choose **Wait**, then **Save my choice: Wait**. Refresh. Your choice should remain. The brief should still be current.
-3. Choose **Revisit my decision**, then **Don’t buy**. Optionally add a reason, save and refresh. Try **Buy** to select a named contender, or **Investigate further**. Each outcome should save and reopen independently of the app’s recommendation.
-4. Under **Saved briefs**, choose version 1. It should warn that it reflects the earlier budget. Version 2 should be current. Both versions retain their original explanations. If you edit the fixture’s budget, version 2 should also become out of date; switching versions must not change the actual budget.
-5. Choose **Print / save PDF**. Expect the selected brief and source addresses, without sign-in controls, the sidebar or exercise controls. A recorded choice appears in the export when it matches the brief’s decision context. Verify the layout on a narrow screen as well.
+- Production build and supported frontend regressions pass, including **44 UI/domain tests**.
+- **175 database checks** pass, including ownership, retry identity, stale revisions, correction history, enrichment without duplicate contenders, and zero-search evidence reuse.
+- **23 provider/evidence/domain tests** pass, including source quotation checks, foreign-reference rejection, unit conversion and roundoff, conflicting facts, subjective comfort, original retrieval dates, hard-failure recommendation guards, and image URL/redirect/size restrictions.
+- Backend type checks and database lint pass.
+- Real OpenRouter extraction reused the approved saved watch/headphone evidence. It returned 3 watch and 4 headphone findings. Two existing watch contenders and four existing headphone contenders were enriched without changing their IDs or increasing their counts. Source images loaded for Seiko and Bose. The real maps populated without manual measurement setup.
+- A browser saved a correction, adopted a later conflicting claim, confirmed that the correction stayed authoritative, saved a map judgment, recorded a personal comfort failure and restored those states after refresh. Both live layouts were checked at 390 pixels without horizontal overflow; portrait images stay inside their reserved preview area.
 
-Leave **Help me decide / Update my Decision Brief** alone during this no-provider check: those buttons make a real OpenRouter request.
+## Limits and remaining alpha work
 
-## Live AI checks completed
+Product identity and quoted facts still need human review; a quotation is not independent verification of every claim. Source availability, exact variant coverage and measurement conditions vary. Unknown stock/prices remain unknown. Only supported units are normalized; incompatible measurements are not silently converted. Image previews are deliberately restricted to trusted manufacturer/asset hosts and bounded requests; unsupported or inaccessible images use a fallback.
 
-With explicit permission, both saved test decisions were sent through the authenticated API, durable background job, OpenRouter generation, validation and immutable brief save. The watch has saved version 1; the headphone decision has saved version 2. Leaving the page and refreshing restored the generated result, and the 390-pixel headphone view had no horizontal overflow. References in both current briefs resolve to their own saved source records and current preference observations.
-
-Live testing exposed two issues that were fixed before this verification was closed:
-
-- The provider rejected the full contract’s `uniqueItems` rule. Generation now uses a compatible schema subset while the full server validator still rejects duplicate IDs and invalid references.
-- The first headphone brief incorrectly described $349.99 as above $350. Synthesis now receives authoritative budget verdicts and exact differences from deterministic application logic. Regenerated headphone version 2 correctly says both Sony and Bose pass the saved budget check. Version 1 remains historical; use version 2 for review.
-
-The initial failed jobs are retained as operational history. No user preference, contender, actual budget or final user choice was changed by generating these briefs. Provider generation is verified for these examples; the results are not a guarantee of general recommendation accuracy or current product facts.
-
-## Evidence and boundaries
-
-The production build, supported frontend regressions, **37 focused UI/domain tests**, **148 database checks**, **10 provider/evidence tests** and database lint pass. Browser checks used the synthetic fixture for all four outcomes, refresh, reopening, historical versions, stale indicators, source links, PDF export and 390-pixel layout. Mocked provider tests cover schema validation, unsupported citations, foreign contenders, over-budget recommendations, uncertainty, one repair attempt and no automatic replay after a timeout.
-
-This is not a completed private-alpha release. Both live synthesis examples are verified. Broader quality evaluation and full watch/non-watch acceptance across changed priorities and all outcomes remain pending. Exercise suggestions remain rule-based. Research does not automatically populate comparable map measurements; full non-budget constraint/offer evaluation remains incomplete. Hosted Vercel/Supabase release, hosted email delivery, content-free monitoring, operational usage/cost visibility, recovery rehearsal and the five-user pilot remain outstanding. Implementation changes are committed locally; no push or deployment performed.
+Requirement suggestions are not silently installed as hard rules. The user confirms the proposed check and can adjust or remove it. Typed requirements and corrections are authoritative; arbitrary prose does not become a made-up numeric threshold. More adaptive planning, targeted research stopping/freshness work, durable draft recovery, broader journey acceptance, hosted deployment, monitoring and the five-user pilot remain on the alpha punch list.

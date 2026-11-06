@@ -11,7 +11,7 @@ const nodeFlags = nodeMajor >= 25 ? [`--localstorage-file=${storagePath}`] : [];
 const vitestCli = join(projectRoot, "node_modules/vitest/vitest.mjs");
 const result = spawnSync(
   process.execPath,
-  [...nodeFlags, vitestCli, "run", "--config", "vitest.config.ts", "src/app/DecisionBriefPanel.test.tsx", "src/app/A2uiPairwiseChoice.test.tsx", "src/app/PurchaseAlpha.test.tsx", "src/app/DecisionCatalog.test.tsx", "src/domain/exploration.test.ts", "src/domain/whatIf.test.ts"],
+  [...nodeFlags, vitestCli, "run", "--config", "vitest.config.ts", "src/app/Products.test.tsx", "src/app/DecisionBriefPanel.test.tsx", "src/app/A2uiPairwiseChoice.test.tsx", "src/app/PurchaseAlpha.test.tsx", "src/app/DecisionCatalog.test.tsx", "src/domain/exploration.test.ts", "src/domain/whatIf.test.ts"],
   {
     cwd: projectRoot,
     stdio: "inherit",

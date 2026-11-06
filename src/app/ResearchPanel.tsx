@@ -1,3 +1,5 @@
+import {ProductCard} from './ProductCard';
+import type {ProductEvidence} from '../domain/productEvidence.generated';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { DecisionRepository, SavedDecision } from '../services/decisions';
@@ -5,7 +7,7 @@ import { assessResearchPrice } from '../domain/purchaseBudget';
 import type { ResearchResult } from '../domain/research.generated';
 
 type Job = { id:string; status:string; decision_revision:number; automatic:boolean; queries_used:number; query_budget:number; attempts:number; error_code:string|null; created_at:string; result:ResearchResult|null; web_response:{sources:Array<{url:string;title:string}>}|null };
-type Finding = { id:string; job_id:string; candidate:ResearchResult['findings'][number]; state:'provisional'|'adopted'|'dismissed';created_at:string };
+type Finding = { id:string; job_id:string; candidate:ResearchResult['findings'][number]&{details?:ProductEvidence}; state:'provisional'|'adopted'|'dismissed';created_at:string };
 type Allowance = {configured:boolean;enabled:boolean;dailyLimit:number;dailyUsed:number};
 const errors:Record<string,string> = {'provider-timeout':'The research provider timed out. A search may have run; its allowance is reserved to prevent accidental duplicate charges.','search-outcome-unknown':'A search response was lost. This pass will not repeat the search automatically.','no-supported-sources':'No usable source citations were returned.','fabricated-citation':'A finding referred to an unsupported source and was rejected.','provider-auth':'The research provider credentials need attention.','provider-rate-limit':'The research provider is currently limiting requests.'};
 const message = (error:unknown) => error && typeof error==='object' && 'message' in error ? String(error.message) : 'Could not contact research. Please retry.';
@@ -21,12 +23,13 @@ export function ResearchPanel({client,decision,repository,onSaved}:{client:Supab
   const active=useRef(true);
   const automaticKey=useRef('');
   const manualKey=useRef<string|null>(null);
+  const detailsRequest=useRef<{actionId:string;revision:number}|null>(null);
   const pendingReview=useRef<{id:string;actionId:string;revision:number;adopt:boolean}|null>(null);
   const call=useCallback(async (body:Record<string,unknown>) => {
     const {data,error}=await client.functions.invoke('research-api',{body});
     if(error) {
       const response=(error as unknown as {context?:Response}).context;
-      if(response?.json) { const detail=await response.json().catch(()=>null); if(detail?.error) throw new Error(detail.error); }
+      if(response?.json) { const detail=await response.json().catch(()=>null); if(detail?.error) throw Object.assign(new Error(detail.error),{code:detail.code}); }
       throw error;
     }
     return data;
@@ -61,6 +64,12 @@ export function ResearchPanel({client,decision,repository,onSaved}:{client:Supab
     manualKey.current??=crypto.randomUUID();
     if(await command({action:'start',decisionId:decision.id,key:manualKey.current,automatic:false}))manualKey.current=null;
   }
+  async function fillDetails(){
+    if(busy)return;setBusy(true);setError('');detailsRequest.current??={actionId:crypto.randomUUID(),revision:decision.revision};
+    try{await call({action:'details',decisionId:decision.id,...detailsRequest.current});detailsRequest.current=null;await load();}
+    catch(e){if((e as {code?:string}).code==='40001'){detailsRequest.current=null;onSaved(await repository.get(decision.id));setError('The decision changed. Review the latest board, then request details again.');}else{if(['22023','P0001'].includes((e as {code?:string}).code??''))detailsRequest.current=null;setError(message(e));}}
+    finally{setBusy(false);}
+  }
   async function review(finding:Finding,adopt:boolean) {
     if(busy)return;setBusy(true);setError('');
     const action=pendingReview.current??{id:finding.id,actionId:crypto.randomUUID(),revision:decision.revision,adopt};pendingReview.current=action;
@@ -83,6 +92,7 @@ export function ResearchPanel({client,decision,repository,onSaved}:{client:Supab
     <div className="research-actions"><button className="composer-submit" disabled={busy||!!running||!allowance?.configured||!allowance.enabled||(allowance.dailyUsed>=allowance.dailyLimit&&!manualKey.current)||!!decision.archived_at} onClick={()=>void manualStart()}>{manualKey.current?'Retry research request':jobs.length?'Research again':'Research this decision'}</button>
       {running && <><span role="status">{running.status==='queued'?'Waiting for background research…':running.status==='paused'?'Research paused':running.web_response?'Sources found. Checking the findings…':'Searching sources…'}</span><button disabled={busy} onClick={()=>void command({action:'control',jobId:running.id,control:running.status==='paused'?'resume':'pause'})}>{running.status==='paused'?'Resume':'Pause'}</button><button disabled={busy} onClick={()=>void command({action:'control',jobId:running.id,control:'cancel'})}>Cancel research</button></>}
     </div>
+    {jobs.some(job=>job.status==='completed'&&job.web_response)&&<p><button disabled={busy||!!running||!allowance?.configured||!!decision.archived_at||!allowance.enabled||allowance.dailyUsed>=allowance.dailyLimit} onClick={()=>void fillDetails()}>{detailsRequest.current?'Retry product details request':'Fill in product details from saved sources'}</button><small className="muted"> Checks existing research for exact models, offers and comparable specifications; uses one pass, no new search.</small></p>}
     {running && <p className="muted">You can close this page; research continues in the background. Pausing may allow an in-flight request to finish, but suggestions will wait for resume.</p>}
     {latest?.status==='failed' && <p role="alert">{errors[latest.error_code??'']??'This research pass could not finish. You can explicitly request another pass.'}</p>}
     {latest?.status==='cancelled' && <p>Research cancelled. Your existing contenders and preferences are unchanged.</p>}
@@ -90,7 +100,7 @@ export function ResearchPanel({client,decision,repository,onSaved}:{client:Supab
     {error && <div role="alert" className="alpha-notice">{error}<button disabled={busy} onClick={()=>void load().then(()=>setError('')).catch(error=>setError(message(error)))}>Retry connection</button></div>}
     {pendingReview.current && error && <button disabled={busy} onClick={()=>{const f=findings.find(item=>item.id===pendingReview.current?.id);if(f)void review(f,pendingReview.current!.adopt);}}>Retry saving review</button>}
     <label className="alpha-check"><input type="checkbox" checked={showDismissed} onChange={event=>setShowDismissed(event.target.checked)}/>Show dismissed findings</label>
-    <div className="research-findings">{findings.filter(finding=>showDismissed||finding.state!=='dismissed').map(finding=><article key={finding.id} className="research-finding"><p className="eyebrow">{finding.state==='provisional'?'Suggested · review':finding.state}</p><h3>{finding.candidate.label}</h3><p className="provisional-tag">{assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='fail' ? 'Above your stated budget — adjust your budget before adopting' : assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='pass' ? 'Researched price is within your budget · tax/shipping unverified' : 'Budget fit unknown · confirm price and currency'}</p><p>{finding.candidate.summary}</p><p>{finding.candidate.price?`${finding.candidate.price.currency} ${finding.candidate.price.amount} · researched price`:'Price could not be verified'} · {finding.candidate.availability}</p><ul>{finding.candidate.unknowns.map((value,index)=><li key={index}>{value}</li>)}</ul><ul className="research-sources">{finding.candidate.sources.map(source=><li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul><small>Retrieved {new Date(finding.created_at).toLocaleDateString()} · Source-backed, not independently verified</small>{finding.state==='provisional'&&<div className="research-actions"><button disabled={busy||!!decision.archived_at||!!pendingReview.current||assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='fail'} onClick={()=>void review(finding,true)}>Adopt contender</button><button disabled={busy||!!decision.archived_at||!!pendingReview.current} onClick={()=>void review(finding,false)}>Dismiss</button></div>}</article>)}</div>
+    <div className="research-findings">{findings.filter(finding=>showDismissed||finding.state!=='dismissed').map(finding=><article key={finding.id} className="research-finding"><p className="eyebrow">{finding.state==='provisional'?'Suggested · review':finding.state}</p><h3>{finding.candidate.details?.targetCandidateId?`Update ${decision.canonical_model.candidates.find(c=>c.id===finding.candidate.details?.targetCandidateId)?.label??finding.candidate.label}`:finding.candidate.label}</h3>{finding.candidate.details&&<ProductCard provisional imageClient={client} decisionId={decision.id} model={decision.canonical_model} candidate={{id:finding.id,label:finding.candidate.label,url:finding.candidate.url,attributes:{},provisional:true,evidence:finding.candidate.details,...(finding.candidate.price?{price:{...finding.candidate.price,observedAt:finding.created_at}}:{})}}/>}<p className="provisional-tag">{assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='fail' ? 'Above your stated budget — adjust your budget before adopting' : assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='pass' ? 'Researched price is within your budget · tax/shipping unverified' : 'Budget fit unknown · confirm price and currency'}</p><p>{finding.candidate.summary}</p><p>{finding.candidate.price?`${finding.candidate.price.currency} ${finding.candidate.price.amount} · researched price`:'Price could not be verified'} · {finding.candidate.availability}</p><ul>{finding.candidate.unknowns.map((value,index)=><li key={index}>{value}</li>)}</ul><ul className="research-sources">{finding.candidate.sources.map(source=><li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul><small>Retrieved {new Date(finding.candidate.details?.offers[0]?.observedAt??finding.candidate.details?.facts[0]?.observedAt??finding.created_at).toLocaleDateString()} · Source-backed, not independently verified</small>{finding.state==='provisional'&&<div className="research-actions"><button disabled={busy||!!decision.archived_at||!!pendingReview.current||assessResearchPrice(finding.candidate.price,decision.canonical_model.context)==='fail'} onClick={()=>void review(finding,true)}>{finding.candidate.details?.targetCandidateId?'Use these product details':'Adopt contender'}</button><button disabled={busy||!!decision.archived_at||!!pendingReview.current} onClick={()=>void review(finding,false)}>Dismiss</button></div>}</article>)}</div>
     {running?.web_response && !findings.some(finding=>finding.job_id===running.id) && <details><summary>Sources found so far</summary><ul>{running.web_response.sources.map(source=><li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
   </section>;
 }

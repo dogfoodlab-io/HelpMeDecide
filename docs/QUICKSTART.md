@@ -48,7 +48,7 @@ Open **Purchase context · budget, region & requirements** to supply research co
 
 The additive backend migration `20261024033559_adaptive_exploration.sql` adds `apply_exploration_command` with explicit authenticated grants, durable command history and canonical state updates. Scenario saves are isolated; only explicit application changes preferences/context. The migration also retires active scenario assumptions on context edits and rejects pairwise edits to archived decisions. Apply it with local migration-up; do not reset a database with wanted decisions.
 
-Map measurements are currently manual. The map displays product facts and entered measurements; scenario assumptions are separately labeled in the decision evaluation. Research summaries do not automatically populate map axes. AI-generated conversational guidance and complete non-budget constraint/offer handling remain future work. Final synthesis is implemented and verified locally with real OpenRouter calls for both categories.
+Maps now populate from quoted, comparable product facts when available; manual measurements remain secondary. Scenario assumptions are separately labeled. Typed non-budget requirements evaluate to pass/fail/unknown, with personal experience and source uncertainty preserved. More adaptive conversational guidance and broader retail acceptance remain future work. Final synthesis is implemented and verified locally with real OpenRouter calls for both categories.
 
 ### App-led What If
 
@@ -61,3 +61,10 @@ The mandatory experience contract is in `AGENTS.md` and `PRODUCT_ALPHA.md`. Ever
 ## Saved recommendation and final choice
 
 Use **Help me decide** to request a saved recommendation from existing evidence, without another search. The request runs in the background. Record your own **Buy**, **Wait**, **Don’t buy** or **Investigate further** choice separately; a written reason is optional. **Revisit my decision** reopens exploration. Saved brief versions retain their original context and sources; changes mark earlier versions out of date. **Print / save PDF** exports the selected brief. See IMPLEMENTATION_STATUS.md for the current no-provider verification fixture and the completed live synthesis examples and current release boundaries.
+
+
+## Product evidence and must-have checks
+
+Contender cards now expose product identity, reported specifications, dated offers and sources. New research proposes enriched details for existing contenders; choose **Use these product details** to adopt them. **Fill in product details from saved sources** reuses stored source evidence, with no new search, and still consumes a bounded extraction pass. Source retrieval dates remain the original dates.
+
+Under **Your must-haves**, confirm app-proposed checks from the context you already provided. Cards show meets/fails/needs-checking results. **Review or correct a fact** saves an authoritative correction that later research preserves. Personal comfort requires your own experience. **Tradeoff map** starts with sourced axes and values when enough comparable evidence exists; missing or conflicting measurements remain unknown and manual setup is optional. See IMPLEMENTATION_STATUS.md for the five-minute verification guide and the fictional sandbox.

@@ -7,10 +7,10 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc -p tsconfig.app.json --noEmit && node scripts/build.mjs",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "node scripts/generate-brief-types.mjs --check && node scripts/generate-research-types.mjs --check && node scripts/generate-exploration-types.mjs --check && tsx scripts/run-tests.mjs && node scripts/build-output.test.mjs && npm run test:a2ui",
+    "test": "node scripts/generate-product-types.mjs --check && node scripts/generate-brief-types.mjs --check && node scripts/generate-research-types.mjs --check && node scripts/generate-exploration-types.mjs --check && tsx scripts/run-tests.mjs && node scripts/build-output.test.mjs && npm run test:a2ui",
     "test:a2ui": "node scripts/run-a2ui-test.mjs",
     "test:watch": "tsx scripts/run-tests.mjs",
-    "contracts:generate": "node scripts/generate-brief-types.mjs && node scripts/generate-research-types.mjs && node scripts/generate-exploration-types.mjs"
+    "contracts:generate": "node scripts/generate-product-types.mjs && node scripts/generate-brief-types.mjs && node scripts/generate-research-types.mjs && node scripts/generate-exploration-types.mjs"
   },
   "dependencies": {
     "@a2ui/react": "0.14.0",
