@@ -1,0 +1,65 @@
+docs/ALPHA_PUNCH_LIST.md
+  s_22abf7412ab2fb::t_c4a02f347afe3a 9-11,14-16,31,39,41
+docs/IMPLEMENTATION_STATUS.md
+  s_22abf7412ab2fb::t_546b2002390bc1 1,3,5,7-12,14,16-21,23,25,27,29-34,36,38,40
+docs/PRODUCT_ALPHA.md
+  s_22abf7412ab2fb::t_ba13fbd7f570ab 53-57
+docs/QUICKSTART.md
+  s_22abf7412ab2fb::t_78c216d502d6bd 51,64-70
+package.json
+  s_22abf7412ab2fb::t_b531a87f69730d 10,13
+scripts/generate-product-types.mjs
+  s_22abf7412ab2fb::t_eafeb2cec859e6 1-10
+scripts/run-a2ui-test.mjs
+  s_22abf7412ab2fb::t_baed66f1c29771 14
+src/app/AdaptiveExplorer.tsx
+  s_22abf7412ab2fb::t_4cbfdc3ff059d1 1,38-40,48,82
+src/app/DecisionCatalog.tsx
+  s_22abf7412ab2fb::t_ad56492817ae25 1-2,76,110
+src/app/EvidenceTradeoffMap.tsx
+  s_22abf7412ab2fb::t_fad39b22ff567f 1-18
+src/app/ProductCard.tsx
+  s_22abf7412ab2fb::t_83623b99d2bef7 1-49
+src/app/ProductPhoto.tsx
+  s_22abf7412ab2fb::t_7a19677de0823f 1-15
+src/app/Products.test.tsx
+  s_22abf7412ab2fb::t_dab88550020e72 1-54
+src/app/PurchaseAlpha.tsx
+  s_22abf7412ab2fb::t_6fec6fd8bd3328 1-2,102
+src/app/PurchaseRequirements.tsx
+  s_22abf7412ab2fb::t_d8d7366fceba91 1-43
+src/app/ResearchPanel.tsx
+  s_22abf7412ab2fb::t_7fe766740ad4d6 1-2,10,26,32,67-72,95,103
+src/domain/exploration.ts
+  s_22abf7412ab2fb::t_2886d07579fdbb 1,44-46,61-62,69,85
+src/domain/productEvidence.generated.ts
+  s_22abf7412ab2fb::t_a73dab205dd15f 1-11
+src/domain/productEvidence.ts
+  s_22abf7412ab2fb::t_0ff9fa24e44b29 1-88
+src/domain/purchaseDecision.ts
+  s_22abf7412ab2fb::t_1b6a49fd430333 14-15,35-36
+src/services/decisions.ts
+  s_22abf7412ab2fb::t_78484a8dd28790 1-2,30,44,50-57,67
+src/services/productImages.ts
+  s_22abf7412ab2fb::t_9ecd346a0470da 1-14
+src/services/products.ts
+  s_22abf7412ab2fb::t_ce26d1030b95ec 1-24
+src/styles.css
+  s_22abf7412ab2fb::t_4b70665021979a 2017-2069
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de917100ca154cc36ad278a15c022371939606f3",
+  "prompts": {},
+  "sessions": {
+    "s_22abf7412ab2fb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a16a0e-d044-7f73-be86-a1e846741bc5",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "raz <mehraz.hakim@gmail.com>"
+    }
+  }
+}
