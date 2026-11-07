@@ -29,7 +29,13 @@ export function PurchaseAlpha({ client }: { client: SupabaseClient | null }) {
     return () => { active = false; subscription.unsubscribe(); };
   }, [client]);
   const repository = useMemo(() => client ? createDecisionRepository(client) : null, [client]);
-  if (!client) return <main className="alpha-shell"><Brand /><section className="alpha-welcome"><p className="eyebrow">Private purchase workspace</p><h1>A little clarity before<br />your next big purchase.</h1><p>Connect the alpha service to save decisions and resume them across visits.</p><div className="alpha-notice">Local setup: add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to .env.local, then restart the app. See docs/QUICKSTART.md.</div></section></main>;
+  if (!client) {
+    const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+    const setupMessage = isLocal
+      ? 'Local setup: add VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY to .env.local, then restart the app. See docs/QUICKSTART.md.'
+      : 'The private workspace is unavailable because its production service connection has not been configured.';
+    return <main className="alpha-shell"><Brand /><section className="alpha-welcome"><p className="eyebrow">Private purchase workspace</p><h1>A little clarity before<br />your next big purchase.</h1><p>Connect the alpha service to save decisions and resume them across visits.</p><div className="alpha-notice">{setupMessage}</div></section></main>;
+  }
   if (!ready) return <main className="alpha-shell"><p role="status">Opening your workspace…</p></main>;
   return session && repository ? <SavedWorkspace client={client} key={session.user.id} repository={repository} ownerId={session.user.id} email={session.user.email ?? ''} signOut={() => client.auth.signOut().then(({ error }) => { if (error) throw error; })} /> : <SignIn client={client} initialError={error} />;
 }

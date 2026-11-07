@@ -20,7 +20,7 @@ The isolated local backend lives at `/Users/raz/Documents/Codex/2026-10-23/ap/wo
 4. Provision an invited account through Supabase Auth admin tools. The browser sign-in explicitly disables account creation. For a hosted alpha, disable public signups, configure SMTP, and configure the Magic Link email template to contain `{{ .Token }}`. The local backend config already uses an OTP template. Hosted email delivery has not been configured or tested.
 5. Run `npm ci` and `npm run dev` in the frontend. Open the address Vite prints. If 5173 is occupied it chooses another port. Email OTP entry does not require a redirect.
 
-For production builds the custom build script reads `.env.production`, `.env.local`, and process environment through Vite's environment loader. Both VITE_SUPABASE values are public client settings; database RLS and command authorization enforce ownership.
+For production builds the custom build script reads `.env.production`, `.env.local`, and process environment through Vite's environment loader. Configure `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` in the hosting provider's production build environment and redeploy; local `.env.local` values are not uploaded to Vercel. Both values are public client settings; database RLS and command authorization enforce ownership. If either value is missing, a production-specific connection notice appears instead of local setup instructions.
 
 ## Automated validation
 
