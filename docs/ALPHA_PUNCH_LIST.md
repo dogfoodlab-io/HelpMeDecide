@@ -38,4 +38,4 @@ Collaboration, billing, checkout/purchasing, screenshot uploads, dedicated futur
 
 Production build and supported frontend checks pass, including 44 focused UI/domain tests. The local database suite has 175 passing checks; provider/evidence tests have 23 passing checks; backend type checks pass. The live watch brief favors Citizen and the corrected headphone brief favors Bose. See IMPLEMENTATION_STATUS.md for the exploratory guide and the limits of those results.
 
-The earlier baseline is committed separately in the backend and frontend repositories. The product-evidence phase is currently uncommitted. Hosting, deployment and pilot acceptance are still outstanding.
+The earlier baseline and product-evidence phase are committed separately in the backend and frontend repositories. Hosting, deployment and pilot acceptance are still outstanding.

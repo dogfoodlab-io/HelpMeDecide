@@ -1,6 +1,6 @@
 # HelpMeDecide: product evidence, must-haves and sourced comparisons
 
-Updated 2026-10-24. This phase implements punch-list items 1–3 locally. Changes in this phase are uncommitted; nothing was pushed or deployed.
+Implementation and local verification recorded 2026-10-24. The frontend changes are committed as `de91710`; the coordinated backend changes are committed as `3937abb`. Deployment and pilot acceptance remain outstanding.
 
 ## What is available
 
